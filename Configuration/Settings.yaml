@@ -1,0 +1,16 @@
+TYPO3:
+  TypoScript:
+    # Default context objects that are available in Eel expressions
+    #
+    # New variables should be added with a package key prefix. Example:
+    #
+    #   defaultContext:
+    #     'MyPackage.String': 'MyPackage\Helper\StringHelper'
+    #
+    defaultContext:
+      'Themeloper.Resource': 'Kitsunet\Themeloper\Eel\Helper\ResourceHelper'
+
+  Neos:
+    typoScript:
+      autoInclude:
+        'Kitsunet.Themeloper': TRUE

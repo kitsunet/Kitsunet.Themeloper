@@ -1,0 +1,119 @@
+prototype(Kitsunet.Themeloper:CanRender).@class = 'Kitsunet\\Themeloper\\TypoScript\\CanRenderImplementation'
+
+prototype(Kitsunet.Themeloper:CurrentNodeLayout) < prototype(TYPO3.TypoScript:Value) {
+	value = ${q(node).property('layout')}
+}
+
+prototype(Kitsunet.Themeloper:SlideParentSubpageLayout) < prototype(TYPO3.TypoScript:Value) {
+	value = ${q(node).parents('[subpageLayout]').first().property('subpageLayout')}
+}
+
+prototype(Kitsunet.Themeloper:SlideParentLayout) < prototype(TYPO3.TypoScript:Value) {
+	value = ${q(node).parents('[layout]').first().property('layout')}
+}
+
+prototype(Kitsunet.Themeloper:DefaultLayout) < prototype(TYPO3.TypoScript:Value) {
+	value = 'default'
+}
+
+prototype(Kitsunet.Themeloper:CurrentLayout) < prototype(TYPO3.TypoScript:Case) {
+		currentNodeHasLayout {
+			condition = ${q(node).property('layout')}
+			renderer = ${q(node).property('layout')}
+		}
+
+		parentNodeHasSubpageLayout {
+			condition = ${q(node).parents('[subpageLayout]').first().property('subpageLayout')}
+			renderer = ${q(node).parents('[subpageLayout]').first().property('subpageLayout')}
+		}
+
+		default {
+			condition = ${TRUE}
+			renderer = 'default'
+		}
+}
+
+prototype(Kitsunet.Themeloper:CurrentThemeFile) < prototype(TYPO3.TypoScript:Case) {
+	@override {
+		path = 'Templates/Page/'
+		sitePackage = ${node.context.currentSite.siteResourcesPackageKey}
+	}
+
+	@process.wrapResourceUri = ${'resource://' + sitePackage + '/Private/' + path + String.firstLetterToUpperCase(value) + '.html'}
+
+	currentNodeHasLayout {
+		layout = ${q(node).property('layout')}
+		condition = ${Themeloper.Resource.exists('resource://' + sitePackage + '/Private/' + path + String.firstLetterToUpperCase(this.layout) + '.html')}
+		renderer = ${q(node).property('layout')}
+	}
+
+	parentNodeHasSubpageLayout {
+		layout = ${q(node).parents('[subpageLayout]').first().property('subpageLayout')}
+		condition = ${Themeloper.Resource.exists('resource://' + sitePackage + '/Private/' + path + String.firstLetterToUpperCase(this.layout) + '.html')}
+		renderer = ${q(node).parents('[subpageLayout]').first().property('subpageLayout')}
+	}
+
+	default {
+		condition = ${TRUE}
+		renderer = 'default'
+	}
+}
+
+prototype(TYPO3.TypoScript:Template) {
+	self = ${node}
+	site = ${site}
+	sitePath = ${q(site).nodePath}
+	document = ${documentNode}
+	layout = Kitsunet.Themeloper:CurrentLayout
+}
+
+root {
+	layout {
+		layout = ${layout}
+		condition = Kitsunet.Themeloper:CanRender {
+			layout = ${layout}
+			path = ${'/' + layout}
+		}
+	}
+
+	@override {
+		layout = Kitsunet.Themeloper:CurrentLayout
+	}
+
+}
+
+prototype(Kitsunet.Themeloper:Page) < prototype(TYPO3.Neos:Page) {
+	@override {
+		sitePackage = ${node.context.currentSite.siteResourcesPackageKey}
+		layout = Kitsunet.Themeloper:CurrentLayout
+	}
+
+	head {
+		themeloper = TYPO3.TypoScript:Template {
+			templatePath = Kitsunet.Themeloper:CurrentThemeFile {
+				@override.path = 'Templates/Page/Head/'
+			}
+		}
+	}
+
+	bodyTag.attributes.class = Kitsunet.Themeloper:CurrentLayout
+
+	body {
+		@override {
+			partsTemplatePath = ${'resource://' + sitePackage + '/Private/Templates/Page/Parts/'}
+		}
+
+		templatePath = Kitsunet.Themeloper:CurrentThemeFile
+
+		content {
+			main = PrimaryContent
+			main.nodePath = 'main'
+		}
+
+		parts {
+			breadcrumb = TYPO3.Neos:BreadcrumbMenu {
+				templatePath = ${Themeloper.Resource.exists(partsTemplatePath + 'BreadcrumbMenu.html') ? (partsTemplatePath + 'BreadcrumbMenu.html') : 'resource://TYPO3.Neos/Private/Templates/TypoScriptObjects/BreadcrumbMenu.html'}
+			}
+		}
+	}
+}

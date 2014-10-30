@@ -1,0 +1,14 @@
+{
+    "name": "kitsunet/themeloper",
+    "type": "typo3-flow-package",
+    "description": "Themeloper brings helpers and settings for making Theming for Neos really easy.",
+    "require": {
+        "typo3/flow": "*",
+        "typo3/typoscript": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Kitsunet\\Themeloper": "Classes"
+        }
+    }
+}
